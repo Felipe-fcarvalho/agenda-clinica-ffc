@@ -1,0 +1,52 @@
+// use prisma-8
+
+namespace public {
+  model Clinic {
+    id            Int            @id @default(autoincrement())
+    name          String
+    slug          String         @unique
+    timezone      String         @default("America/Sao_Paulo")
+    createdAt     DateTime       @default(now()) @map("created_at")
+    professionals Professional[]
+    services      Service[]
+
+    @@map("clinics")
+  }
+
+  model Professional {
+    id           Int            @id @default(autoincrement())
+    clinicId     Int            @map("clinic_id")
+    clinic       Clinic         @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+    name         String
+    specialty    String?
+    active       Boolean        @default(true)
+    workingHours WorkingHours[]
+
+    @@index([clinicId])
+    @@map("professionals")
+  }
+
+  model Service {
+    id              Int    @id @default(autoincrement())
+    clinicId        Int    @map("clinic_id")
+    clinic          Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+    name            String
+    durationMinutes Int    @map("duration_minutes")
+    priceCents      Int?   @map("price_cents")
+
+    @@index([clinicId])
+    @@map("services")
+  }
+
+  model WorkingHours {
+    id             Int          @id @default(autoincrement())
+    professionalId Int          @map("professional_id")
+    professional   Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+    weekday        Int // 0 = domingo ... 6 = sábado
+    startMinute    Int          @map("start_minute")
+    endMinute      Int          @map("end_minute")
+
+    @@index([professionalId, weekday])
+    @@map("working_hours")
+  }
+}
